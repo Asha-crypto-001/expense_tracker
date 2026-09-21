@@ -55,6 +55,7 @@ does not imply that planned or placeholder UI is complete.
 - argon2-cffi for password hashing
 - Matplotlib for analytics
 - pytest for automated tests
+- Django 5.2 for the optional parallel web/health workflow
 - Alembic, Pydantic, and python-dateutil are declared in
   [`requirements.txt`](./requirements.txt), but no application code currently
   uses them directly.
@@ -87,7 +88,10 @@ src/main.py
   directly and do not use this class.
 
 There is no HTTP server, REST/GraphQL API, cloud database, or external
-authentication integration in the repository.
+authentication integration in the desktop application. An optional Django
+project is included as a separate web layer for CI/build validation; it
+currently exposes only a GET `/health/` endpoint and does not replace the
+PySide6 application or reuse the desktop SQLite schema.
 
 ## Project structure
 
@@ -107,6 +111,10 @@ expense_manager/
 │       ├── dialogs/
 │       ├── styles/main.qss
 │       └── views/
+├── django_project/          # Optional Django web-layer configuration
+├── webapp/                   # Django health endpoint and tests
+├── manage.py
+├── .github/workflows/ci.yml # Django and desktop CI
 ├── tests/test_services.py
 ├── requirements.txt
 └── README.md
@@ -188,7 +196,19 @@ $env:QT_QPA_PLATFORM = "offscreen"
 .\venv\Scripts\python.exe -m pytest -q
 ```
 
-Audited result: **18 passed**.
+Audited result: **19 passed**.
+
+Run the optional Django workflow locally:
+
+```powershell
+.\venv\Scripts\python.exe manage.py check
+.\venv\Scripts\python.exe manage.py test
+```
+
+The Django layer is also validated by
+[`.github/workflows/ci.yml`](./.github/workflows/ci.yml), which runs Django
+checks/tests, the PySide6 test suite, and Python compilation on pushes and pull
+requests targeting `main`.
 
 Compile-check the Python source:
 
